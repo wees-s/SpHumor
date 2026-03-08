@@ -101,6 +101,9 @@ class DataCache:
         
         # Stress calc with weights
         # transit: 30%, rain: 20%, peak hours: 30%, day of week: 10%, temperature: 10%
+        if (days_week_stress <= 5):
+            peak_hours_stress = 0;
+        
         result = (transit_stress * 0.3) + (rain_stress * 0.2) + (peak_hours_stress * 0.3) + (days_week_stress * 0.1) + (temperature_stress * 0.1)
         
         return round(result, 2)

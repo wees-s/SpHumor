@@ -4,10 +4,9 @@ import transit.transit as transit
 
 print(f"Porcentagem de chuva em São Paulo: {round(climate.get_rain(), 2)} %")
 print(f"Temperatura: {round(climate.get_temperature(), 1)} °C")
-#print(f"Precipitação: {climate.get_precipitation()}")
-#print(f"Apparente: {climate.get_apparent_temperature()}")
-#print(f"Dia: {climate.get_is_day()}")
-#print(f"Data: {actualdatetime.get_date()}")
+print(f"Precipitação: {climate.get_precipitation()}")
+print(f"Apparente: {climate.get_apparent_temperature()}")
+print(f"Data: {actualdatetime.get_date()}")
 print(f"Dia da semana: {actualdatetime.get_day()}")
 print(f"Horário: {actualdatetime.get_hour()}")
 print(f"Transito: {transit.get_transit()} km")
@@ -16,12 +15,12 @@ def calc_transit():
     actual_transit = transit.get_transit()
     max_transit = 800;
     result = (actual_transit / max_transit) * 100
-    #print(f"Transito: {round(result, 2)} %")
+    print(f"Transito: {round(result, 2)} %")
     return round(result, 2)
 
 def calc_rain():
-    actual_rain = climate.get_rain()  # Agora já é porcentagem (0-100%)
-    result = actual_rain  # Não precisa mais de conversão
+    actual_rain = climate.get_rain()
+    result = actual_rain
     print(f"Chuva: {round(result, 2)} %")
     return round(result, 2)
 
@@ -42,7 +41,7 @@ def days_of_week():
         result = 5;
     elif actual_day == 'Domingo':
         result = 0;
-    #print(f"Dia da semana: {result} %")
+    print(f"Dia da semana: {result} %")
     return result
 
 def calc_temperature():
@@ -55,7 +54,7 @@ def calc_temperature():
         result = 0;
     else:
         result = 100;
-    #print(f"Temperatura: {result} %")
+    print(f"Temperatura: {result} %")
     return result
  
 def peak_hours():
@@ -76,7 +75,7 @@ def peak_hours():
         result = 50
     else:
         result = 0
-    #print(f"Horário de pico: {result} %")
+    print(f"Horário de pico: {result} %")
     return result
 
 def calc_stress():
@@ -88,8 +87,11 @@ def calc_stress():
     
     # Stress calc with weights
     # transit: 30%, rain: 20%, peak hours: 30%, day of week: 10%, temperature: 10%
+    if (days_week_stress <= 5):
+        peak_hours_stress = 0;
+        
     result = (transit_stress * 0.3) + (rain_stress * 0.2) + (peak_hours_stress * 0.3) + (days_week_stress * 0.1) + (temperature_stress * 0.1)
-    
+        
     print(f"Stress geral: {round(result, 2)} %")
     return round(result, 2)
 
