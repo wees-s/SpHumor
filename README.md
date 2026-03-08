@@ -33,8 +33,7 @@ python api.py
 
 2. Acesse a aplicação no navegador:
 ```
-Frontend (VISUALIZAÇÃO EM FUNCIONAMENTO): http://localhost:5000
-API (APENAS DADOS): http://localhost:5000/api/stress
+Frontend: http://localhost:5000
 ```
 
 ## Funcionalidades
@@ -100,6 +99,8 @@ SpHumor/
 Stress Total = (Trânsito × 0.3) + (Chuva × 0.2) + 
              (Horário Pico × 0.3) + (Dia Semana × 0.1) + 
              (Temperatura × 0.1)
+
+Visualização de dados usados: http://localhost:5000/api/stress
 ```
 
 ### Pesos
