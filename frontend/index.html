@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SP❤HUMOR - Stress de São Paulo</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>SP❤HUMOR</h1>
+        </header>
+
+        <main>
+            <div class="main-content-wrapper">
+                <section class="stress-section">
+                    <div class="stress-meter">
+                        <h3>MEDIDOR DO STRESS ATUAL</h3>
+                        <div class="meter-container">
+                            <div class="meter">
+                                <div class="meter-needle" id="stressNeedle"></div>
+                                <div class="meter-scale">
+                                    <div class="scale-good">BOM</div>
+                                    <div class="scale-medium">MÉDIO</div>
+                                    <div class="scale-bad">RUIM</div>
+                                </div>
+                            </div>
+                            <div class="stress-value">
+                                <span id="stressPercentage">0%</span>
+                            </div>
+                            <div class="last-update-stress">
+                                <span id="lastUpdate">Última atualização: --:--:--</span>
+                            </div>
+                        </div>
+                        <div class="emoji-indicators">
+                            <div class="emoji" data-level="1">😊</div>
+                            <div class="emoji" data-level="2">😐</div>
+                            <div class="emoji" data-level="3">😟</div>
+                            <div class="emoji" data-level="4">😰</div>
+                            <div class="emoji" data-level="5">😱</div>
+                        </div>
+                    </div>
+
+                    <div class="time-status-card">
+                        <h3>HORA ATUAL</h3>
+                        <div class="current-time" id="currentTime">00:00:00</div>
+                        <div class="peak-status" id="peakStatus">Verificando...</div>
+                    </div>
+                </section>
+
+                <section class="dashboard">
+                    <div class="card live-card">
+                        <h3>TRÂNSITO</h3>
+                        <div class="live-content">
+                            <span id="transitValue">0 KM</span>
+                            <div class="live-indicator">~10 min</div>
+                        </div>
+                        <div class="card-description" id="transitDescription">Verificando...</div>
+                    </div>
+                    
+                    <div class="card live-card">
+                        <h3>CHUVA</h3>
+                        <div class="live-content">
+                            <span id="rainValue">0 %</span>
+                            <div class="live-indicator">~10 min</div>
+                        </div>
+                        <div class="card-description">Chances de chuva</div>
+                    </div>
+                    
+                    <div class="card live-card">
+                        <h3>TEMPERATURA</h3>
+                        <div class="live-content">
+                            <span id="temperatureValue">0 °C</span>
+                            <div class="live-indicator">~10 min</div>
+                        </div>
+                        <div class="card-description" id="temperatureDescription">Verificando...</div>
+                    </div>
+                </section>
+
+                <section class="message-card">
+                    <div class="message-content">
+                        <h3 id="dayMessage">CARREGANDO...</h3>
+                        <p id="motivationalMessage">Aguarde enquanto carregamos os dados...</p>
+                    </div>
+                </section>
+            </div>
+        </main>
+
+        <footer>
+            <div class="footer-content">
+                <div class="about-section">
+                    <h4>O que é isso?</h4>
+                    <p>Um dashboard que monitora o stress da cidade de São Paulo usando métricas de dados públicos.</p>
+                </div>
+                <div class="team-section">
+                    <h4>Entenda quem somos!</h4>
+                    <p>Desenvolvido para fins educacionais, combinando dados de trânsito, clima e horários para criar um índice de stress urbano.</p>
+                </div>
+                <div class="links">
+                    <a href="#">Sobre</a>
+                    <a href="#">Privacy Policy</a>
+                    <a href="#">Contact</a>
+                    <a href="#">Suporte</a>
+                    <a href="#">Termos de serviço</a>
+                </div>
+                <div class="copyright">
+                    <p>© 2026 Feito para fins educacionais</p>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
