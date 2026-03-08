@@ -33,8 +33,8 @@ python api.py
 
 2. Acesse a aplicação no navegador:
 ```
-Frontend: http://localhost:5000
-API: http://localhost:5000/api/stress
+Frontend (VISUALIZAÇÃO EM FUNCIONAMENTO): http://localhost:5000
+API (APENAS DADOS): http://localhost:5000/api/stress
 ```
 
 ## Funcionalidades
