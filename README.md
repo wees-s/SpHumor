@@ -13,7 +13,7 @@ Um dashboard que monitora o nível de stress da cidade de São Paulo utilizando 
 
 1. Clone o repositório:
 ```bash
-git clone [<repository-url>](https://github.com/wees-s/SpHumor.git)
+git clone https://github.com/wees-s/SpHumor.git
 cd SpHumor
 ```
 
