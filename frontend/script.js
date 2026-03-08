@@ -10,6 +10,35 @@ class StressDashboard {
             last_update: null
         };
         this.init();
+        this.initParallaxBackground();
+    }
+
+    initParallaxBackground() {
+        // Animação de background parallax com mouse
+        document.addEventListener('mousemove', (e) => {
+            const mouseX = e.clientX / window.innerWidth - 0.5;
+            const mouseY = e.clientY / window.innerHeight - 0.5;
+            
+            // Calcula movimento oposto e suave
+            const moveX = mouseX * 20; // Até 20px de movimento
+            const moveY = mouseY * 20;
+            
+            // Aplica transformação ao pseudo-elemento ::before
+            const body = document.body;
+            body.style.setProperty('--bg-x', `${moveX}px`);
+            body.style.setProperty('--bg-y', `${moveY}px`);
+        });
+    }
+
+    // Funções para abrir Terms e Privacy Policy
+    showTerms() {
+        event.preventDefault();
+        window.location.href = 'terms.html';
+    }
+
+    showPrivacy() {
+        event.preventDefault();
+        window.location.href = 'privacy.html';
     }
 
     async init() {
@@ -207,18 +236,23 @@ class StressDashboard {
             const hour = now.getHours();
             const peakStatus = document.getElementById('peakStatus');
             
-            if (hour >= 7 && hour <= 9) {
+            if (hour >= 7 && hour <= 9 && !(this.currentData.day === 'Sábado' || this.currentData.day === 'Domingo')) {
                 peakStatus.textContent = 'Horário de pico: se for possível, evite sair nesse horário';
                 peakStatus.style.color = '#ff6b6b';
-            } else if (hour >= 17 && hour <= 19) {
+            } else if (hour >= 17 && hour <= 19 && !(this.currentData.day === 'Sábado' || this.currentData.day === 'Domingo')) {
                 peakStatus.textContent = 'Horário de pico: se for possível, evite sair nesse horário';
                 peakStatus.style.color = '#ff6b6b';
-            } else if ((hour >= 6 && hour < 7) || (hour > 9 && hour <= 10) || (hour >= 16 && hour < 17) || (hour > 19 && hour <= 20)) {
+            } else if ((hour >= 6 && hour < 7) || (hour > 9 && hour <= 10) || (hour >= 16 && hour < 17) || (hour > 19 && hour <= 20) && !(this.currentData.day === 'Sábado' || this.currentData.day === 'Domingo')) {
                 peakStatus.textContent = 'Próximo ao horário de pico';
                 peakStatus.style.color = '#ffa500';
             } else {
-                peakStatus.textContent = 'Fora do horário de pico';
-                peakStatus.style.color = '#4ecdc4';
+                if (this.currentData.day === 'Sábado' || this.currentData.day === 'Domingo'){
+                    peakStatus.textContent = 'Fim de semana: relaxe e aproveite!';
+                    peakStatus.style.color = '#4ecdc4';
+                } else {
+                    peakStatus.textContent = 'Fora do horário de pico';
+                    peakStatus.style.color = '#4ecdc4';
+                }
             }
         };
         
