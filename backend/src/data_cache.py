@@ -6,7 +6,7 @@ import climate.climate as climate
 import actualdatetime.actualdatetime as actualdatetime
 import transit.transit as transit
 
-#global variable to store transit data
+# Global variable to store transit data
 actual_transit = 0
 
 class DataCache:
@@ -99,7 +99,7 @@ class DataCache:
         days_week_stress = self.days_of_week()
         temperature_stress = self.calc_temperature()
         
-        # Stress calc with weights
+        # Stress calculation with weights
         # transit: 30%, rain: 20%, peak hours: 30%, day of week: 10%, temperature: 10%
         if (days_week_stress <= 5):
             peak_hours_stress = 0;
@@ -113,21 +113,21 @@ class DataCache:
     def update_data(self):
         try:
             with self.lock:
-                # Obter dados brutos primeiro
+                # Get raw data first
                 new_transit = transit.get_transit()
                 new_rain = climate.get_rain()
                 new_temperature = climate.get_temperature()
                 new_day = actualdatetime.get_day()
                 new_time = actualdatetime.get_hour()
                 
-                # Atualizar cache com novos dados
+                # Update cache with new data
                 self.cache['transit'] = new_transit
                 self.cache['rain'] = new_rain
                 self.cache['temperature'] = new_temperature
                 self.cache['day'] = new_day
                 self.cache['time'] = new_time
                 
-                # Recalcular stress com novos dados
+                # Recalculate stress with new data
                 self.cache['transit_stress'] = self.calc_transit()
                 self.cache['rain_stress'] = self.calc_rain()
                 self.cache['peak_hours_stress'] = self.peak_hours()
@@ -141,17 +141,17 @@ class DataCache:
                 
         except Exception as e:
             print(f"Erro ao atualizar dados: {e}")
-            # Em caso de erro, apenas atualizar o timestamp para indicar tentativa
+            # In case of error, only update timestamp to indicate attempt
             with self.lock:
                 self.cache['last_update'] = dt.now().strftime('%H:%M:%S')
                 print(f"[{self.cache['last_update']}] Falha na atualização, mantendo dados anteriores")
 
     def update_loop(self):
-        # Atualizar imediatamente ao iniciar
+        # Update immediately on start
         self.update_data()
         
         while self.running:
-            # Esperar 10 minutos (600 segundos)
+            # Wait 10 minutes (600 seconds)
             time.sleep(600)
             if self.running:
                 self.update_data()
@@ -165,5 +165,5 @@ class DataCache:
         if self.update_thread.is_alive():
             self.update_thread.join(timeout=5)
 
-# Instância global do cache
+# Global cache instance
 data_cache = DataCache()
