@@ -15,11 +15,12 @@ class StressDashboard {
             last_update: null
         };
 
-        // Pesos do usuário (4 categorias, total máximo de 10)
+        // Pesos do usuário (5 categorias, total máximo de 10)
         this.weights = {
-            transit: 3,
+            transit: 2,
             rain: 2,
-            horario: 3,
+            pico: 2,
+            diasemana: 2,
             clima: 2
         };
 
@@ -158,14 +159,11 @@ class StressDashboard {
             return;
         }
 
-        // "Horário" combina peak_hours_stress e days_week_stress (75% / 25%)
-        const horarioStress = (this.currentData.peak_hours_stress * 0.75) +
-                              (this.currentData.days_week_stress * 0.25);
-
         const weightedSum =
             (this.currentData.transit_stress * this.weights.transit) +
             (this.currentData.rain_stress * this.weights.rain) +
-            (horarioStress * this.weights.horario) +
+            (this.currentData.peak_hours_stress * this.weights.pico) +
+            (this.currentData.days_week_stress * this.weights.diasemana) +
             (this.currentData.temperature_stress * this.weights.clima);
 
         this.currentData.stress = Math.round(Math.min(weightedSum / total, 100));
