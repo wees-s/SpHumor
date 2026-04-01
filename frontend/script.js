@@ -17,11 +17,11 @@ class StressDashboard {
 
         // Pesos do usuário (5 categorias, total máximo de 10)
         this.weights = {
-            transit: 2,
-            rain: 2,
-            pico: 2,
-            diasemana: 2,
-            clima: 2
+            transit: 0,
+            rain: 0,
+            pico: 0,
+            diasemana: 0,
+            clima: 0
         };
 
         this.maxPoints = 10;
@@ -67,12 +67,16 @@ class StressDashboard {
         if (saved) {
             try {
                 const parsed = JSON.parse(saved);
-                const total = Object.values(parsed).reduce((a, b) => a + b, 0);
-                if (total <= this.maxPoints) {
+                const expectedKeys = Object.keys(this.weights);
+                const hasAllKeys = expectedKeys.every(k => k in parsed);
+                const total = expectedKeys.reduce((sum, k) => sum + (parsed[k] || 0), 0);
+                if (hasAllKeys && total <= this.maxPoints) {
                     this.weights = parsed;
+                } else {
+                    localStorage.removeItem('sphumor_weights');
                 }
             } catch (e) {
-                // Usa pesos padrão
+                localStorage.removeItem('sphumor_weights');
             }
         }
     }
