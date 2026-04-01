@@ -7,30 +7,39 @@ class StressDashboard {
             temperature: 0,
             day: '',
             time: '',
+            transit_stress: 0,
+            rain_stress: 0,
+            peak_hours_stress: 0,
+            days_week_stress: 0,
+            temperature_stress: 0,
             last_update: null
         };
+
+        // Pesos do usuário (4 categorias, total máximo de 10)
+        this.weights = {
+            transit: 3,
+            rain: 2,
+            horario: 3,
+            clima: 2
+        };
+
+        this.maxPoints = 10;
         this.init();
         this.initParallaxBackground();
     }
 
     initParallaxBackground() {
-        // Animação de background parallax com mouse
         document.addEventListener('mousemove', (e) => {
             const mouseX = e.clientX / window.innerWidth - 0.5;
             const mouseY = e.clientY / window.innerHeight - 0.5;
-            
-            // Calcula movimento oposto e suave
-            const moveX = mouseX * 20; // Até 20px de movimento
+            const moveX = mouseX * 20;
             const moveY = mouseY * 20;
-            
-            // Aplica transformação ao pseudo-elemento ::before
             const body = document.body;
             body.style.setProperty('--bg-x', `${moveX}px`);
             body.style.setProperty('--bg-y', `${moveY}px`);
         });
     }
 
-    // Funções para abrir Terms e Privacy Policy
     showTerms() {
         event.preventDefault();
         window.location.href = 'terms.html';
@@ -42,26 +51,142 @@ class StressDashboard {
     }
 
     async init() {
+        this.loadWeights();
+        this.initWeightControls();
         await this.fetchData();
         this.updateUI();
         this.startClock();
         this.startAutoUpdate();
     }
 
+    // --- Sistema de pesos ---
+
+    loadWeights() {
+        const saved = localStorage.getItem('sphumor_weights');
+        if (saved) {
+            try {
+                const parsed = JSON.parse(saved);
+                const total = Object.values(parsed).reduce((a, b) => a + b, 0);
+                if (total <= this.maxPoints) {
+                    this.weights = parsed;
+                }
+            } catch (e) {
+                // Usa pesos padrão
+            }
+        }
+    }
+
+    saveWeights() {
+        localStorage.setItem('sphumor_weights', JSON.stringify(this.weights));
+    }
+
+    getTotalWeight() {
+        return Object.values(this.weights).reduce((a, b) => a + b, 0);
+    }
+
+    getRemainingPoints() {
+        return this.maxPoints - this.getTotalWeight();
+    }
+
+    initWeightControls() {
+        // Renderizar valores iniciais
+        this.updateWeightUI();
+
+        // Event listeners nos botões
+        document.querySelectorAll('.weight-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const metric = e.target.dataset.metric;
+                const action = e.target.dataset.action;
+
+                if (action === 'plus' && this.getRemainingPoints() > 0 && this.weights[metric] < 10) {
+                    this.weights[metric]++;
+                } else if (action === 'minus' && this.weights[metric] > 0) {
+                    this.weights[metric]--;
+                }
+
+                this.saveWeights();
+                this.updateWeightUI();
+                this.recalculateStress();
+                this.updateStressMeter(this.currentData.stress);
+            });
+        });
+    }
+
+    updateWeightUI() {
+        const remaining = this.getRemainingPoints();
+        const total = this.getTotalWeight();
+
+        // Atualizar valores de cada métrica
+        Object.keys(this.weights).forEach(metric => {
+            const el = document.getElementById(`weight-${metric}`);
+            if (el) el.textContent = this.weights[metric];
+        });
+
+        // Atualizar pontos restantes
+        const remainingEl = document.getElementById('remainingPoints');
+        if (remainingEl) {
+            remainingEl.textContent = remaining;
+            if (remaining === 0) {
+                remainingEl.style.color = '#ff4d6d';
+            } else {
+                remainingEl.style.color = '#00e5ff';
+            }
+        }
+
+        // Atualizar barra de progresso
+        const barFill = document.getElementById('weightsBarFill');
+        if (barFill) {
+            barFill.style.width = `${(total / this.maxPoints) * 100}%`;
+        }
+
+        // Desabilitar botões + quando sem pontos
+        document.querySelectorAll('.weight-btn.plus').forEach(btn => {
+            btn.disabled = remaining <= 0;
+        });
+
+        // Desabilitar botões - quando em 0
+        Object.keys(this.weights).forEach(metric => {
+            const minusBtn = document.querySelector(`.weight-btn.minus[data-metric="${metric}"]`);
+            if (minusBtn) minusBtn.disabled = this.weights[metric] <= 0;
+        });
+    }
+
+    recalculateStress() {
+        const total = this.getTotalWeight();
+        if (total === 0) {
+            this.currentData.stress = 0;
+            return;
+        }
+
+        // "Horário" combina peak_hours_stress e days_week_stress (75% / 25%)
+        const horarioStress = (this.currentData.peak_hours_stress * 0.75) +
+                              (this.currentData.days_week_stress * 0.25);
+
+        const weightedSum =
+            (this.currentData.transit_stress * this.weights.transit) +
+            (this.currentData.rain_stress * this.weights.rain) +
+            (horarioStress * this.weights.horario) +
+            (this.currentData.temperature_stress * this.weights.clima);
+
+        this.currentData.stress = Math.round(Math.min(weightedSum / total, 100));
+    }
+
+    // --- Fetch de dados ---
+
     async fetchData() {
         try {
-            // Buscar dados da API real
-            const response = await fetch('/api/stress');
+            const response = await fetch('data.json');
             if (response.ok) {
                 const data = await response.json();
-                this.currentData = data;
+                this.currentData = { ...this.currentData, ...data };
+                this.recalculateStress();
             } else {
-                throw new Error('Falha ao buscar dados da API');
+                throw new Error('data.json não encontrado');
             }
         } catch (error) {
             console.error('Erro ao buscar dados:', error);
-            // Dados simulados para fallback
             this.currentData = this.generateMockData();
+            this.recalculateStress();
         }
     }
 
@@ -70,61 +195,51 @@ class StressDashboard {
         const now = new Date();
         const dayName = days[now.getDay()];
         const hour = now.getHours();
-        
-        // Lógica de stress baseada no horário e dia
-        let stress = 0;
-        if (dayName === 'Segunda-feira') stress += 30;
-        else if (dayName === 'Terça-feira') stress += 25;
-        else if (dayName === 'Quarta-feira') stress += 20;
-        else if (dayName === 'Quinta-feira') stress += 15;
-        else if (dayName === 'Sexta-feira') stress += 10;
-        else if (dayName === 'Sábado') stress += 5;
-        
-        if (hour >= 7 && hour <= 9) stress += 40;
-        else if (hour >= 17 && hour <= 19) stress += 40;
-        else if (hour >= 10 && hour <= 11) stress += 20;
-        else if (hour >= 12 && hour <= 13) stress += 15;
-        else if (hour >= 14 && hour <= 16) stress += 10;
-        else if (hour >= 20 && hour <= 21) stress += 15;
-        
-        stress = Math.min(stress + Math.random() * 20, 100);
+
+        let transit_stress = Math.round(Math.random() * 100);
+        let rain_stress = Math.round(Math.random() * 100);
+        let peak_hours_stress = (hour >= 7 && hour <= 9) || (hour >= 17 && hour <= 19) ? 100 : 30;
+        let days_week_stress = dayName === 'Segunda-feira' ? 100 : 30;
+        let temperature_stress = Math.round(Math.random() * 100);
 
         return {
-            stress: Math.round(stress),
+            stress: 0,
             transit: Math.round(Math.random() * 800),
-            rain: Math.random() * 100, // Agora é porcentagem
+            rain: Math.round(Math.random() * 100),
             temperature: 20 + Math.random() * 10,
             day: dayName,
             time: `${hour.toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`,
+            transit_stress,
+            rain_stress,
+            peak_hours_stress,
+            days_week_stress,
+            temperature_stress,
             last_update: now.toLocaleTimeString('pt-BR')
         };
     }
 
+    // --- UI Updates ---
+
     updateUI() {
-        // Atualizar termômetro de stress
         this.updateStressMeter(this.currentData.stress);
-        
-        // Atualizar cards
+
         document.getElementById('transitValue').textContent = `${this.currentData.transit} KM`;
         document.getElementById('rainValue').textContent = `${this.currentData.rain.toFixed(1)} %`;
         document.getElementById('temperatureValue').textContent = `${this.currentData.temperature.toFixed(1)} °C`;
-        
-        // Atualizar descrições
+
         this.updateTransitDescription(this.currentData.transit);
         this.updateTemperatureDescription(this.currentData.temperature);
-        
-        // Atualizar última atualização no bloco de stress
+
         if (this.currentData.last_update) {
             document.getElementById('lastUpdate').textContent = `Última atualização: ${this.currentData.last_update}`;
         }
-        
-        // Atualizar mensagem
+
         this.updateMessage();
     }
 
     updateTransitDescription(transit) {
         const description = document.getElementById('transitDescription');
-        
+
         if (transit === 0) {
             description.textContent = 'Aguardando dados de trânsito. Espere a próxima atualização do site. (atualizações são feitas a cada 10 minutos)';
             description.style.color = '#ff6b6b';
@@ -150,7 +265,7 @@ class StressDashboard {
 
     updateTemperatureDescription(temperature) {
         const description = document.getElementById('temperatureDescription');
-        
+
         if (temperature >= 30) {
             description.textContent = 'Clima quente';
             description.style.color = '#ff6b6b';
@@ -170,15 +285,12 @@ class StressDashboard {
         const needle = document.getElementById('stressNeedle');
         const percentage = document.getElementById('stressPercentage');
         const emojis = document.querySelectorAll('.emoji');
-        
-        // Atualizar texto
+
         percentage.textContent = `${stress}%`;
-        
-        // Calcular rotação da agulha (-90 a +90 graus)
+
         const rotation = -90 + (stress * 1.8);
         needle.style.transform = `translateX(-50%) rotate(${rotation}deg)`;
-        
-        // Atualizar emojis
+
         emojis.forEach((emoji, index) => {
             const level = index + 1;
             const threshold = level * 20;
@@ -189,7 +301,7 @@ class StressDashboard {
     updateMessage() {
         const dayMessage = document.getElementById('dayMessage');
         const motivationalMessage = document.getElementById('motivationalMessage');
-        
+
         const messages = {
             'Domingo': {
                 title: 'DOMINGO',
@@ -220,7 +332,7 @@ class StressDashboard {
                 message: 'Dia de relaxar! A cidade está mais calma e o stress está controlado. Aproveite!'
             }
         };
-        
+
         const dayData = messages[this.currentData.day] || messages['Domingo'];
         dayMessage.textContent = dayData.title;
         motivationalMessage.textContent = dayData.message;
@@ -231,11 +343,10 @@ class StressDashboard {
             const now = new Date();
             const timeString = now.toLocaleTimeString('pt-BR', { hour12: false });
             document.getElementById('currentTime').textContent = timeString;
-            
-            // Atualizar status de horário de pico
+
             const hour = now.getHours();
             const peakStatus = document.getElementById('peakStatus');
-            
+
             if (hour >= 7 && hour <= 9 && !(this.currentData.day === 'Sábado' || this.currentData.day === 'Domingo')) {
                 peakStatus.textContent = 'Horário de pico: se for possível, evite sair nesse horário';
                 peakStatus.style.color = '#ff6b6b';
@@ -246,7 +357,7 @@ class StressDashboard {
                 peakStatus.textContent = 'Próximo ao horário de pico';
                 peakStatus.style.color = '#ffa500';
             } else {
-                if (this.currentData.day === 'Sábado' || this.currentData.day === 'Domingo'){
+                if (this.currentData.day === 'Sábado' || this.currentData.day === 'Domingo') {
                     peakStatus.textContent = 'Fim de semana: relaxe e aproveite!';
                     peakStatus.style.color = '#4ecdc4';
                 } else {
@@ -255,16 +366,13 @@ class StressDashboard {
                 }
             }
         };
-        
-        // Atualizar imediatamente
+
         updateTime();
-        
-        // Atualizar a cada segundo
         setInterval(updateTime, 1000);
     }
 
     startAutoUpdate() {
-        // Atualizar a cada 5 minutos (para verificar se há novos dados)
+        // Verifica data.json a cada 5 minutos
         setInterval(async () => {
             await this.fetchData();
             this.updateUI();
@@ -272,7 +380,6 @@ class StressDashboard {
     }
 }
 
-// Inicializar dashboard quando a página carregar
 document.addEventListener('DOMContentLoaded', () => {
     new StressDashboard();
 });

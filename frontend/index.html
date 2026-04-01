@@ -79,6 +79,51 @@
                     </div>
                 </section>
 
+                <section class="weights-section">
+                    <h3>PERSONALIZE SEU STRESS</h3>
+                    <p class="weights-description">Distribua até <strong>10 pontos</strong> entre as métricas que mais afetam você</p>
+                    <div class="weights-remaining">
+                        Pontos disponíveis: <span id="remainingPoints">10</span> / 10
+                    </div>
+                    <div class="weights-grid">
+                        <div class="weight-control" data-metric="transit">
+                            <span class="weight-label">TRÂNSITO</span>
+                            <div class="weight-buttons">
+                                <button class="weight-btn minus" data-action="minus" data-metric="transit">-</button>
+                                <span class="weight-value" id="weight-transit">0</span>
+                                <button class="weight-btn plus" data-action="plus" data-metric="transit">+</button>
+                            </div>
+                        </div>
+                        <div class="weight-control" data-metric="rain">
+                            <span class="weight-label">CHUVA</span>
+                            <div class="weight-buttons">
+                                <button class="weight-btn minus" data-action="minus" data-metric="rain">-</button>
+                                <span class="weight-value" id="weight-rain">0</span>
+                                <button class="weight-btn plus" data-action="plus" data-metric="rain">+</button>
+                            </div>
+                        </div>
+                        <div class="weight-control" data-metric="horario">
+                            <span class="weight-label">HORÁRIO</span>
+                            <div class="weight-buttons">
+                                <button class="weight-btn minus" data-action="minus" data-metric="horario">-</button>
+                                <span class="weight-value" id="weight-horario">0</span>
+                                <button class="weight-btn plus" data-action="plus" data-metric="horario">+</button>
+                            </div>
+                        </div>
+                        <div class="weight-control" data-metric="clima">
+                            <span class="weight-label">CLIMA</span>
+                            <div class="weight-buttons">
+                                <button class="weight-btn minus" data-action="minus" data-metric="clima">-</button>
+                                <span class="weight-value" id="weight-clima">0</span>
+                                <button class="weight-btn plus" data-action="plus" data-metric="clima">+</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="weights-bar">
+                        <div class="weights-bar-fill" id="weightsBarFill"></div>
+                    </div>
+                </section>
+
                 <section class="message-card">
                     <div class="message-content">
                         <h3 id="dayMessage">CARREGANDO...</h3>
