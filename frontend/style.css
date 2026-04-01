@@ -458,6 +458,11 @@ header h1 {
     color: #a0b0c0;
     letter-spacing: 2px;
     text-transform: uppercase;
+    min-height: 24px;
+    display: flex;
+    align-items: center;
+    text-align: center;
+    line-height: 1.5;
 }
 
 .weight-buttons {
