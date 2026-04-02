@@ -2,6 +2,23 @@
 
 Um dashboard que monitora o nível de stress da cidade de São Paulo utilizando métricas de dados públicos em tempo real.
 
+## Arquitetura
+
+O projeto é dividido em duas partes independentes que se comunicam através de um arquivo JSON:
+
+```
+Backend (worker.py)  →  frontend/data.json  ←  Frontend (estático)
+  a cada 10 min           arquivo compartilhado      apenas leitura
+  coleta APIs externas
+  calcula métricas
+  grava no arquivo
+```
+
+- **Backend**: Worker standalone que coleta dados das APIs externas a cada 10 minutos e grava em `frontend/data.json`.
+- **Frontend**: Site estático que lê `data.json` e apresenta os dados. Nenhuma chamada de API é feita por usuário.
+
+Essa separação garante que milhares de usuários simultâneos não gerem requisições extras às APIs externas.
+
 ## Como Executar
 
 ### Pré-requisitos
@@ -17,48 +34,62 @@ git clone https://github.com/wees-s/SpHumor.git
 cd SpHumor
 ```
 
-2. Instale as dependências do backend:
+2. Instale as dependências:
 ```bash
 cd backend
 pip install -r requirements.txt
 ```
 
-### Executando a Aplicação
+### Executando
 
-1. Inicie o servidor backend:
+São necessários **dois processos** rodando simultaneamente:
+
 ```bash
+# Terminal 1 — Worker (coleta dados e grava data.json)
+cd backend/src
+python worker.py
+
+# Terminal 2 — Servidor estático (serve o frontend)
 cd backend/src
 python api.py
 ```
 
-2. Acesse a aplicação no navegador:
-```
-Frontend: http://localhost:5000
-```
+Acesse no navegador: `http://localhost:5000`
+
+> **Nota:** O `api.py` é apenas um servidor de arquivos estáticos. Você pode substituí-lo por qualquer servidor estático (nginx, `python -m http.server` na pasta `frontend/`, etc).
 
 ## Funcionalidades
 
 ### Medidor de Stress
-- **Cálculo em tempo real**: Baseado em 5 métricas ponderadas
-- **Atualização automática**: Dados atualizados a cada 10 minutos
-- **Interface visual**: Termômetro animado com indicadores visuais
+- **Índice de 0 a 100%**: Baseado em 5 métricas de dados públicos
+- **Atualização automática**: Dados coletados a cada 10 minutos pelo worker
+- **Interface visual**: Termômetro animado com indicadores de emoji
 
-### Métricas Monitoradas
-1. **Trânsito** (30%): Dados da CET SP em km de congestionamento
-2. **Chuva** (20%): Probabilidade de precipitação (%)
-3. **Horário de Pico** (30%): Análise de horários críticos
-4. **Dia da Semana** (10%): Ponderação por dia útil/fim de semana
-5. **Temperatura** (10%): Impacto do clima no stress
+### Pesos Personalizáveis
+O usuário pode distribuir até **10 pontos** entre as 5 métricas, personalizando quais fatores de stress são mais relevantes para ele:
+
+| Métrica | O que mede |
+|---|---|
+| **Trânsito** | km de congestionamento (CET SP) |
+| **Chuva** | Probabilidade de precipitação (%) |
+| **Horários de Pico** | Stress por horário (7-9h e 17-19h = máximo) |
+| **Dia da Semana** | Segunda = 100%, Domingo = 0% |
+| **Clima** | Temperatura fora da faixa confortável (20-25°C) |
+
+Exemplo: Peso 5 em trânsito, 3 em chuva, 2 em clima, 0 nos demais = o índice reflete principalmente trânsito e chuva.
+
+Os pesos são salvos no `localStorage` do navegador. O cálculo é feito no client-side usando os dados brutos do `data.json`.
 
 ### Recursos de Tempo
 - **Relógio em tempo real**: Atualização a cada segundo
 - **Status de horário de pico**: Indicadores visuais
-- **Última atualização**: Timestamp dos dados
+- **Última atualização**: Timestamp dos dados coletados
 
 ### Interface
-- **Design responsivo**: Adaptável para desktop e mobile
-- **Glassmorphism**: Estilo moderno com efeitos de blur
+- **Design responsivo**: Desktop e mobile
+- **Glassmorphism**: Efeitos de blur e transparência
 - **Cores dinâmicas**: Indicadores visuais por severidade
+- **Parallax**: Background com efeito de movimento do mouse
 
 ## Estrutura do Projeto
 
@@ -66,49 +97,51 @@ Frontend: http://localhost:5000
 SpHumor/
 ├── backend/
 │   ├── src/
-│   │   ├── api.py              # Servidor Flask
-│   │   ├── data_cache.py       # Cache com agendamento
-│   │   ├── main.py            # Cálculos de stress
-│   │   ├── climate/           # API climática
-│   │   ├── transit/           # API de trânsito
-│   │   └── actualdatetime/    # Data/hora atual
+│   │   ├── worker.py              # Worker standalone (coleta + grava JSON)
+│   │   ├── api.py                 # Servidor estático para o frontend
+│   │   ├── climate/
+│   │   │   └── climate.py         # API Open-Meteo (clima)
+│   │   ├── transit/
+│   │   │   └── transit.py         # Scraper CET SP (trânsito)
+│   │   └── actualdatetime/
+│   │       └── actualdatetime.py  # Data/hora de São Paulo
 │   └── requirements.txt
 ├── frontend/
-│   ├── index.html            # Interface principal
-│   ├── style.css            # Estilos visuais
-│   └── script.js           # Lógica do frontend
+│   ├── index.html                 # Interface principal
+│   ├── style.css                  # Estilos visuais
+│   ├── script.js                  # Lógica do dashboard + pesos
+│   └── data.json                  # Dados gerados pelo worker (auto)
 └── README.md
 ```
 
 ## APIs Utilizadas
 
 ### CET SP
-- **Endpoint**: Dados de trânsito em tempo real
-- **Métrica**: Quilometragem de congestionamento
-- **Atualização**: A cada 10 minutos
+- **Fonte**: Site da CET SP (scraping HTML)
+- **Métrica**: Quilometragem total de congestionamento
+- **Atualização**: A cada 10 minutos pelo worker
 
 ### Open-Meteo
-- **Endpoint**: Dados climáticos de São Paulo
-- **Métricas**: Temperatura e probabilidade de chuva
-- **Atualização**: A cada 10 minutos
+- **Fonte**: API REST gratuita
+- **Métricas**: Temperatura, probabilidade de chuva, precipitação
+- **Localização**: São Paulo (-23.5475, -46.6361)
+- **Cache**: Respostas cacheadas por 1 hora, 5 retries com backoff
 
 ## Cálculo de Stress
 
 ### Fórmula
-```
-Stress Total = (Trânsito × 0.3) + (Chuva × 0.2) + 
-             (Horário Pico × 0.3) + (Dia Semana × 0.1) + 
-             (Temperatura × 0.1)
 
-Visualização de dados usados: http://localhost:5000/api/stress
+```
+Stress = Σ(stress_metrica × peso_usuario) / total_pontos_distribuidos
 ```
 
-### Pesos
-- **Trânsito**: 30% (maior impacto)
-- **Chuva**: 20% (impacto moderado)
-- **Horário de Pico**: 30% (maior impacto)
-- **Dia da Semana**: 10% (impacto baixo)
-- **Temperatura**: 10% (impacto baixo)
+Cada métrica individual é calculada pelo worker (0-100%):
+
+- **Trânsito**: `(km_congestionamento / 800) × 100`
+- **Chuva**: Probabilidade de precipitação direta (0-100%)
+- **Horários de Pico**: 100% em 7-9h e 17-19h, escala menor em outros horários, 0% nos fins de semana
+- **Dia da Semana**: Segunda = 100%, Terça = 80%, ..., Domingo = 0%
+- **Clima**: 0% entre 20-25°C, 60-65% em faixas próximas, 100% em extremos
 
 ### Escala
 - **0-20%**: Stress baixo
@@ -117,109 +150,24 @@ Visualização de dados usados: http://localhost:5000/api/stress
 - **61-80%**: Stress alto
 - **81-100%**: Stress crítico
 
-## Status de Trânsito
-
-- **0km**: "Aguardando dados de trânsito..."
-- **< 300km**: "Pouco trânsito"
-- **300-499km**: "Trânsito moderado"
-- **500-799km**: "Trânsito intenso pela cidade"
-- **≥ 800km**: "Trânsito caótico, aguarde um tempo antes de sair"
-
-## Status de Temperatura
-
-- **< 15°C**: "Clima frio"
-- **15-21°C**: "Clima ameno"
-- **22-29°C**: "Clima agradável"
-- **≥ 30°C**: "Clima quente"
-
-## Status de Horário de Pico
-
-- **Fora do pico**: "Fora do horário de pico"
-- **Próximo ao pico**: "Próximo ao horário de pico"
-- **Horário de pico**: "Horário de pico: se for possível, evite sair nesse horário"
-
 ## Tecnologias
 
 ### Backend
-- **Python 3.8+**: Linguagem principal
-- **Flask**: Servidor web
-- **Threading**: Cache concorrente
-- **Requests**: Client HTTP
-- **BeautifulSoup4**: Parsing HTML
-- **pytz**: Timezones
+- **Python 3.8+**
+- **BeautifulSoup4**: Scraping da CET SP
+- **openmeteo-requests**: Cliente da API Open-Meteo
+- **requests-cache**: Cache de requisições HTTP
+- **pytz**: Timezone de São Paulo
 
 ### Frontend
-- **HTML5**: Estrutura semântica
-- **CSS3**: Estilos modernos
-- **JavaScript ES6+**: Lógica interativa
-- **Responsive Design**: Mobile-first
-
-## Sistema de Cache
-
-### Funcionamento
-- **Atualização automática**: Thread background a cada 10 minutos
-- **Cache persistente**: Evita requisições desnecessárias
-- **Fallback**: Mantém dados anteriores em caso de falha
-- **Timestamp**: Registro de última atualização
-
-### Benefícios
-- **Performance**: Reduz load em APIs externas
-- **Confiabilidade**: Funciona mesmo com falhas
-- **Eficiência**: Economiza recursos
-
-## Tratamento de Erros
-
-### API CET
-- **Timeout**: 30 segundos de espera
-- **Fallback**: Valor 0 em caso de falha
-- **Retry**: Tentativa automática
-
-### API Climática
-- **Cache**: Respostas cacheadas por 10 minutos
-- **Fallback**: Valores padrão em caso de erro
-- **Validação**: Verificação de dados recebidos
-
-## Responsividade
-
-### Desktop
-- **Resolução mínima**: 1200px de largura
-- **Layout**: Grid 3x2 para cards principais
-- **Alinhamento**: Pixel-perfect
-
-### Mobile
-- **Resolução máxima**: 768px de largura
-- **Layout**: Empilhamento vertical
-- **Touch**: Interface otimizada para toque
-
-## Design System
-
-### Cores
-- **Primária**: Gradiente roxo-azul
-- **Stress**: Verde → Amarelo → Vermelho
-- **Cards**: Glassmorphism com blur
-- **Texto**: Branco sobre fundo escuro
-
-### Tipografia
-- **Fonte**: Inter (Google Fonts)
-- **Pesos**: 400, 500, 600, 700
-- **Hierarquia**: Tamanhos consistentes
+- **HTML5 / CSS3 / JavaScript ES6+**
+- **Fontes**: Press Start 2P, Share Tech Mono, Orbitron
+- **Armazenamento**: localStorage para pesos do usuário
+- **Sem frameworks**: Vanilla JS
 
 ## Licença
 
 Desenvolvido para fins educacionais. Uso permitido para aprendizado e desenvolvimento.
-
-## Contribuição
-
-Contribuições são bem-vindas! Por favor:
-1. Fork o repositório
-2. Crie uma branch para sua feature
-3. Abra um Pull Request
-
-## Suporte
-
-Para dúvidas e sugestões:
-- Abra uma Issue no repositório
-- Entre em contato
 
 ---
 
