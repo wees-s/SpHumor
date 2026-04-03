@@ -26,18 +26,127 @@ class StressDashboard {
 
         this.maxPoints = 10;
         this.init();
+        this.initTheme();
+        this.initCanvas();
         this.initParallaxBackground();
     }
 
+    // ─── TEMA CLARO / ESCURO ──────────────────────────
+
+    initTheme() {
+        const saved = localStorage.getItem('sphumor_theme');
+        if (saved === 'light') {
+            document.body.classList.add('light-theme');
+        }
+        this.updateToggleLabel();
+
+        document.getElementById('themeToggle').addEventListener('click', () => {
+            document.body.classList.toggle('light-theme');
+            const isLight = document.body.classList.contains('light-theme');
+            localStorage.setItem('sphumor_theme', isLight ? 'light' : 'dark');
+            this.updateToggleLabel();
+        });
+    }
+
+    updateToggleLabel() {
+        const btn = document.getElementById('themeToggle');
+        const isLight = document.body.classList.contains('light-theme');
+        btn.querySelector('.theme-icon').textContent = isLight ? '🌙' : '☀';
+        btn.querySelector('.theme-label').textContent = isLight ? 'ESCURO' : 'CLARO';
+    }
+
+    // ─── BACKGROUND DINÂMICO (canvas de partículas) ───
+
+    initCanvas() {
+        const canvas = document.getElementById('bgCanvas');
+        const ctx = canvas.getContext('2d');
+
+        const resize = () => {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        };
+        resize();
+        window.addEventListener('resize', resize);
+
+        // Criar partículas
+        const count = 65;
+        const particles = Array.from({ length: count }, () => ({
+            x: Math.random() * window.innerWidth,
+            y: Math.random() * window.innerHeight,
+            vx: (Math.random() - 0.5) * 0.35,
+            vy: (Math.random() - 0.5) * 0.35,
+            r: Math.random() * 1.8 + 0.6,
+            pulse: Math.random() * Math.PI * 2  // fase de pulsação individual
+        }));
+
+        let frame = 0;
+
+        const animate = () => {
+            frame++;
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            const isLight = document.body.classList.contains('light-theme');
+
+            // Cores adaptadas ao tema
+            const dotAlpha  = isLight ? 0.30 : 0.45;
+            const lineBase  = isLight ? '232, 74, 28' : '232, 74, 28';
+            const lineAlphaFactor = isLight ? 0.10 : 0.18;
+
+            particles.forEach(p => {
+                // Movimento
+                p.x += p.vx;
+                p.y += p.vy;
+                p.pulse += 0.02;
+
+                // Wrap
+                if (p.x < 0) p.x = canvas.width;
+                if (p.x > canvas.width) p.x = 0;
+                if (p.y < 0) p.y = canvas.height;
+                if (p.y > canvas.height) p.y = 0;
+
+                // Pulsação suave no raio
+                const r = p.r * (1 + 0.3 * Math.sin(p.pulse));
+
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, r, 0, Math.PI * 2);
+                ctx.fillStyle = `rgba(${lineBase}, ${dotAlpha})`;
+                ctx.fill();
+            });
+
+            // Linhas entre partículas próximas
+            const maxDist = 130;
+            for (let i = 0; i < particles.length; i++) {
+                for (let j = i + 1; j < particles.length; j++) {
+                    const dx = particles[i].x - particles[j].x;
+                    const dy = particles[i].y - particles[j].y;
+                    const dist = Math.sqrt(dx * dx + dy * dy);
+                    if (dist < maxDist) {
+                        const alpha = (1 - dist / maxDist) * lineAlphaFactor;
+                        ctx.beginPath();
+                        ctx.moveTo(particles[i].x, particles[i].y);
+                        ctx.lineTo(particles[j].x, particles[j].y);
+                        ctx.strokeStyle = `rgba(${lineBase}, ${alpha})`;
+                        ctx.lineWidth = 0.8;
+                        ctx.stroke();
+                    }
+                }
+            }
+
+            requestAnimationFrame(animate);
+        };
+
+        animate();
+    }
+
+    // ─── PARALLAX BACKGROUND (apenas tema escuro) ─────
+
     initParallaxBackground() {
         document.addEventListener('mousemove', (e) => {
+            if (document.body.classList.contains('light-theme')) return;
             const mouseX = e.clientX / window.innerWidth - 0.5;
             const mouseY = e.clientY / window.innerHeight - 0.5;
-            const moveX = mouseX * 20;
-            const moveY = mouseY * 20;
-            const body = document.body;
-            body.style.setProperty('--bg-x', `${moveX}px`);
-            body.style.setProperty('--bg-y', `${moveY}px`);
+            document.body.style.setProperty('--bg-x', `${mouseX * 20}px`);
+            document.body.style.setProperty('--bg-y', `${mouseY * 20}px`);
         });
     }
 
@@ -60,7 +169,7 @@ class StressDashboard {
         this.startAutoUpdate();
     }
 
-    // --- Sistema de pesos ---
+    // ─── SISTEMA DE PESOS ─────────────────────────────
 
     loadWeights() {
         const saved = localStorage.getItem('sphumor_weights');
@@ -94,10 +203,8 @@ class StressDashboard {
     }
 
     initWeightControls() {
-        // Renderizar valores iniciais
         this.updateWeightUI();
 
-        // Event listeners nos botões
         document.querySelectorAll('.weight-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 const metric = e.target.dataset.metric;
@@ -121,35 +228,26 @@ class StressDashboard {
         const remaining = this.getRemainingPoints();
         const total = this.getTotalWeight();
 
-        // Atualizar valores de cada métrica
         Object.keys(this.weights).forEach(metric => {
             const el = document.getElementById(`weight-${metric}`);
             if (el) el.textContent = this.weights[metric];
         });
 
-        // Atualizar pontos restantes
         const remainingEl = document.getElementById('remainingPoints');
         if (remainingEl) {
             remainingEl.textContent = remaining;
-            if (remaining === 0) {
-                remainingEl.style.color = '#ff4d6d';
-            } else {
-                remainingEl.style.color = '#00e5ff';
-            }
+            remainingEl.style.color = remaining === 0 ? '#ff4d6d' : '#E84A1C';
         }
 
-        // Atualizar barra de progresso
         const barFill = document.getElementById('weightsBarFill');
         if (barFill) {
             barFill.style.width = `${(total / this.maxPoints) * 100}%`;
         }
 
-        // Desabilitar botões + quando sem pontos
         document.querySelectorAll('.weight-btn.plus').forEach(btn => {
             btn.disabled = remaining <= 0;
         });
 
-        // Desabilitar botões - quando em 0
         Object.keys(this.weights).forEach(metric => {
             const minusBtn = document.querySelector(`.weight-btn.minus[data-metric="${metric}"]`);
             if (minusBtn) minusBtn.disabled = this.weights[metric] <= 0;
@@ -173,7 +271,7 @@ class StressDashboard {
         this.currentData.stress = Math.round(Math.min(weightedSum / total, 100));
     }
 
-    // --- Fetch de dados ---
+    // ─── FETCH DE DADOS ───────────────────────────────
 
     async fetchData() {
         try {
@@ -220,7 +318,7 @@ class StressDashboard {
         };
     }
 
-    // --- UI Updates ---
+    // ─── UI UPDATES ───────────────────────────────────
 
     updateUI() {
         this.updateStressMeter(this.currentData.stress);
@@ -268,18 +366,50 @@ class StressDashboard {
     updateTemperatureDescription(temperature) {
         const description = document.getElementById('temperatureDescription');
 
-        if (temperature >= 30) {
-            description.textContent = 'Clima quente';
-            description.style.color = '#ff6b6b';
-        } else if (temperature >= 22) {
-            description.textContent = 'Clima agradável';
-            description.style.color = '#4ecdc4';
-        } else if (temperature >= 15) {
-            description.textContent = 'Clima ameno';
-            description.style.color = '#4ecdc4';
-        } else {
-            description.textContent = 'Clima frio';
-            description.style.color = '#00bfff';
+        // Âncoras: [temp, label, [r, g, b]]
+        const anchors = [
+            [ -10, 'Frio extremo',    [100, 180, 255]],
+            [   5, 'Muito frio',      [100, 180, 255]],
+            [  10, 'Frio',            [100, 200, 230]],
+            [  15, 'Clima frio',      [100, 210, 210]],
+            [  18, 'Clima ameno',     [ 78, 205, 196]],
+            [  22, 'Clima agradável', [ 78, 205, 196]],
+            [  26, 'Clima quente',    [255, 180,  80]],
+            [  30, 'Muito quente',    [255, 120,  60]],
+            [  35, 'Calor extremo',   [255,  60,  60]],
+            [  40, 'Calor extremo',   [255,  60,  60]],
+        ];
+
+        // Clamp nos extremos
+        if (temperature <= anchors[0][0]) {
+            description.textContent = anchors[0][1];
+            description.style.color = `rgb(${anchors[0][2].join(',')})`;
+            return;
+        }
+        if (temperature >= anchors.at(-1)[0]) {
+            description.textContent = anchors.at(-1)[1];
+            description.style.color = `rgb(${anchors.at(-1)[2].join(',')})`;
+            return;
+        }
+
+        // Encontra o par de âncoras e interpola
+        for (let i = 0; i < anchors.length - 1; i++) {
+            const [t0, label0, color0] = anchors[i];
+            const [t1, label1, color1] = anchors[i + 1];
+
+            if (temperature >= t0 && temperature < t1) {
+                const ratio = (temperature - t0) / (t1 - t0);
+
+                // Label: usa o da âncora inferior (muda só ao cruzar a âncora)
+                description.textContent = label0;
+
+                // Cor: interpolação RGB suave
+                const r = Math.round(color0[0] + ratio * (color1[0] - color0[0]));
+                const g = Math.round(color0[1] + ratio * (color1[1] - color0[1]));
+                const b = Math.round(color0[2] + ratio * (color1[2] - color0[2]));
+                description.style.color = `rgb(${r}, ${g}, ${b})`;
+                return;
+            }
         }
     }
 
@@ -293,10 +423,18 @@ class StressDashboard {
         const rotation = -90 + (stress * 1.8);
         needle.style.transform = `translateX(-50%) rotate(${rotation}deg)`;
 
+        // Determina o nível atual (1–5) com base no stress
+        // Nível 1 = 0–20%, nível 2 = 21–40%, etc.
+        // Sempre pelo menos nível 1 ativo (sem bug de todos apagados)
+        const currentLevel = Math.max(1, Math.ceil(stress / 20));
+
         emojis.forEach((emoji, index) => {
-            const level = index + 1;
-            const threshold = level * 20;
-            emoji.classList.toggle('active', stress >= threshold);
+            const level = index + 1;           // 1 a 5
+            const isActive = level <= currentLevel;   // acende todos até o atual
+            const isCurrent = level === currentLevel; // o atual pulsa/destaca
+
+            emoji.classList.toggle('active', isActive);
+            emoji.classList.toggle('current', isCurrent);
         });
     }
 
@@ -348,24 +486,17 @@ class StressDashboard {
 
             const hour = now.getHours();
             const peakStatus = document.getElementById('peakStatus');
+            const isWeekend = this.currentData.day === 'Sábado' || this.currentData.day === 'Domingo';
 
-            if (hour >= 7 && hour <= 9 && !(this.currentData.day === 'Sábado' || this.currentData.day === 'Domingo')) {
+            if (!isWeekend && ((hour >= 7 && hour <= 9) || (hour >= 17 && hour <= 19))) {
                 peakStatus.textContent = 'Horário de pico: se for possível, evite sair nesse horário';
                 peakStatus.style.color = '#ff6b6b';
-            } else if (hour >= 17 && hour <= 19 && !(this.currentData.day === 'Sábado' || this.currentData.day === 'Domingo')) {
-                peakStatus.textContent = 'Horário de pico: se for possível, evite sair nesse horário';
-                peakStatus.style.color = '#ff6b6b';
-            } else if ((hour >= 6 && hour < 7) || (hour > 9 && hour <= 10) || (hour >= 16 && hour < 17) || (hour > 19 && hour <= 20) && !(this.currentData.day === 'Sábado' || this.currentData.day === 'Domingo')) {
+            } else if (!isWeekend && ((hour >= 6 && hour < 7) || (hour > 9 && hour <= 10) || (hour >= 16 && hour < 17) || (hour > 19 && hour <= 20))) {
                 peakStatus.textContent = 'Próximo ao horário de pico';
                 peakStatus.style.color = '#ffa500';
             } else {
-                if (this.currentData.day === 'Sábado' || this.currentData.day === 'Domingo') {
-                    peakStatus.textContent = 'Fim de semana: relaxe e aproveite!';
-                    peakStatus.style.color = '#4ecdc4';
-                } else {
-                    peakStatus.textContent = 'Fora do horário de pico';
-                    peakStatus.style.color = '#4ecdc4';
-                }
+                peakStatus.textContent = isWeekend ? 'Fim de semana: relaxe e aproveite!' : 'Fora do horário de pico';
+                peakStatus.style.color = '#4ecdc4';
             }
         };
 
@@ -374,7 +505,6 @@ class StressDashboard {
     }
 
     startAutoUpdate() {
-        // Verifica data.json a cada 5 minutos
         setInterval(async () => {
             await this.fetchData();
             this.updateUI();

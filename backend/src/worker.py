@@ -34,14 +34,42 @@ def calc_rain_stress(rain_probability):
 
 
 def calc_temperature_stress(temperature):
-    if temperature >= 20 and temperature <= 25:
-        return 0
-    elif temperature > 25 and temperature < 29:
-        return 65
-    elif temperature < 20 and temperature > 18:
-        return 60
-    else:
-        return 100
+    # Âncoras: (temperatura°C, stress%)
+    # Zona de conforto ~20–24°C → stress 0
+    # Frio ou calor extremo → stress 100
+    anchors = [
+        (-10, 100),
+        (  0, 100),
+        (  5,  90),
+        ( 10,  75),
+        ( 15,  50),
+        ( 18,  25),
+        ( 20,  10),
+        ( 22,   0),  # conforto ideal começa
+        ( 24,   0),  # conforto ideal termina
+        ( 26,  20),
+        ( 28,  50),
+        ( 30,  75),
+        ( 33,  90),
+        ( 36, 100),
+        ( 40, 100),
+    ]
+
+    # Abaixo ou acima dos extremos definidos
+    if temperature <= anchors[0][0]:
+        return 100.0
+    if temperature >= anchors[-1][0]:
+        return 100.0
+
+    # Interpolação linear entre as âncoras
+    for i in range(len(anchors) - 1):
+        t0, s0 = anchors[i]
+        t1, s1 = anchors[i + 1]
+        if t0 <= temperature < t1:
+            ratio = (temperature - t0) / (t1 - t0)
+            return round(s0 + ratio * (s1 - s0), 1)
+
+    return 0.0
 
 
 def calc_days_week_stress(day):
@@ -58,25 +86,50 @@ def calc_days_week_stress(day):
 
 
 def calc_peak_hours_stress(hour_str, day):
-    # Fim de semana não tem horário de pico
-    if day in ('Sábado', 'Domingo'):
-        return 0
-
     hour = int(hour_str.split(':')[0])
-    if 7 <= hour <= 9:
-        return 100
-    elif 17 <= hour <= 19:
-        return 100
-    elif 10 <= hour <= 11:
-        return 60
-    elif 12 <= hour <= 13:
-        return 40
-    elif 14 <= hour <= 16:
-        return 30
-    elif 20 <= hour <= 21:
-        return 50
+    minute = int(hour_str.split(':')[1]) if ':' in hour_str else 0
+    time_decimal = hour + minute / 60  # ex: 7:30 → 7.5
+
+    # Âncoras: (hora, stress%)
+    # Fim de semana tem picos menores e deslocados
+    if day in ('Sábado', 'Domingo'):
+        anchors = [
+            (0,  0), (9,  0), (11, 30), (13, 50),
+            (15, 40), (18, 30), (20, 20), (23, 10), (24, 0)
+        ]
     else:
-        return 0
+        anchors = [
+            (0,   0),
+            (5,   5),
+            (7,  70),   # pico manhã começa
+            (8,  100),  # pico máximo manhã
+            (9,  80),
+            (10, 50),
+            (11, 40),
+            (12, 45),   # almoço
+            (13, 35),
+            (14, 25),
+            (15, 30),
+            (16, 60),   # pico tarde começa
+            (17, 90),
+            (18, 100),  # pico máximo tarde
+            (19, 75),
+            (20, 45),
+            (21, 25),
+            (22, 10),
+            (23,  5),
+            (24,  0),
+        ]
+
+    # Interpolação linear entre as âncoras
+    for i in range(len(anchors) - 1):
+        t0, s0 = anchors[i]
+        t1, s1 = anchors[i + 1]
+        if t0 <= time_decimal < t1:
+            ratio = (time_decimal - t0) / (t1 - t0)
+            return round(s0 + ratio * (s1 - s0), 1)
+
+    return 0
 
 
 def collect_and_save():
