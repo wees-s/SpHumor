@@ -706,6 +706,146 @@ header h1 {
     box-shadow: 0 0 8px rgba(232, 74, 28, 0.4);
 }
 
+/* ─── METRO SECTION ──────────────────────────────── */
+.metro-section {
+    background: rgba(8, 8, 28, 0.95);
+    border-radius: 4px;
+    padding: 30px;
+    border: 1px solid rgba(232, 74, 28, 0.22);
+    box-shadow: 0 0 20px rgba(232, 74, 28, 0.06);
+    margin-bottom: 30px;
+    width: 836px;
+    margin-left: auto;
+    margin-right: auto;
+    position: relative;
+    overflow: hidden;
+    transition: background 0.4s ease, border-color 0.4s ease;
+}
+
+.metro-section::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(232, 74, 28, 0.5), transparent);
+}
+
+.metro-section h3 {
+    font-family: 'Anton', sans-serif;
+    font-size: 1rem;
+    font-weight: 400;
+    margin-bottom: 20px;
+    color: #E84A1C;
+    text-transform: uppercase;
+    letter-spacing: 3px;
+    text-align: center;
+}
+
+.metro-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+}
+
+.metro-loading {
+    grid-column: 1 / -1;
+    text-align: center;
+    color: #4a6070;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.85rem;
+    padding: 20px 0;
+}
+
+.metro-card {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 14px;
+    border-radius: 4px;
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    background: rgba(255, 255, 255, 0.03);
+    transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+.metro-card:hover {
+    background: rgba(255, 255, 255, 0.06);
+    border-color: rgba(255, 255, 255, 0.12);
+}
+
+.metro-badge {
+    flex-shrink: 0;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Anton', sans-serif;
+    font-size: 0.85rem;
+    font-weight: 400;
+    color: #fff;
+    letter-spacing: 0;
+}
+
+.metro-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.metro-name {
+    font-family: 'Inter', sans-serif;
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: #c0c8e0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    transition: color 0.4s ease;
+}
+
+.metro-status {
+    font-family: 'Inter', sans-serif;
+    font-size: 0.7rem;
+    margin-top: 2px;
+    font-weight: 500;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.metro-status-dot {
+    flex-shrink: 0;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+}
+
+/* Status colors */
+.metro-status.normal    { color: #4ecdc4; }
+.metro-status.alerta    { color: #ffa500; }
+.metro-status.critico   { color: #ff4d6d; }
+.metro-status-dot.normal  { background: #4ecdc4; box-shadow: 0 0 6px rgba(78, 205, 196, 0.6); }
+.metro-status-dot.alerta  { background: #ffa500; box-shadow: 0 0 6px rgba(255, 165, 0, 0.6); }
+.metro-status-dot.critico { background: #ff4d6d; box-shadow: 0 0 6px rgba(255, 77, 109, 0.6); }
+
+/* Light theme overrides */
+body.light-theme .metro-section {
+    background: rgba(255, 252, 247, 0.98);
+    border-color: rgba(232, 74, 28, 0.2);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+}
+body.light-theme .metro-card {
+    border-color: rgba(0, 0, 0, 0.07);
+    background: rgba(0, 0, 0, 0.02);
+}
+body.light-theme .metro-card:hover {
+    background: rgba(0, 0, 0, 0.04);
+    border-color: rgba(0, 0, 0, 0.12);
+}
+body.light-theme .metro-name { color: #1a1100; }
+
 /* ─── MESSAGE CARD ───────────────────────────────── */
 .message-card {
     background: rgba(8, 8, 28, 0.9);

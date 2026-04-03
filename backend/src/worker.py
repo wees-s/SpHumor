@@ -13,6 +13,7 @@ from datetime import datetime
 import climate.climate as climate
 import actualdatetime.actualdatetime as actualdatetime
 import transit.transit as transit
+import metro.metro as metro
 
 # Caminho do arquivo JSON compartilhado com o frontend
 DATA_FILE = os.path.join(
@@ -140,6 +141,7 @@ def collect_and_save():
         transit_km = transit.get_transit()
         day = actualdatetime.get_day()
         hour = actualdatetime.get_hour()
+        metro_lines = metro.get_metro_lines()
 
         # Calcula stress individual de cada métrica
         transit_stress = calc_transit_stress(transit_km)
@@ -166,6 +168,8 @@ def collect_and_save():
             'temperature_stress': temperature_stress,
             # Metadados
             'last_update': last_update,
+            # Status das linhas metroferroviárias
+            'metro_lines': metro_lines,
         }
 
         # Grava no arquivo JSON (atômico com escrita temporária)

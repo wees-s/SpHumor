@@ -1,13 +1,132 @@
 {
-  "transit": 113,
-  "rain": 55.0,
-  "temperature": 28.01,
+  "transit": 51,
+  "rain": 27.0,
+  "temperature": 23.56,
   "day": "Sexta-feira",
-  "time": "12:06",
-  "transit_stress": 14.12,
-  "rain_stress": 55.0,
-  "peak_hours_stress": 44.0,
+  "time": "20:46",
+  "transit_stress": 6.38,
+  "rain_stress": 27.0,
+  "peak_hours_stress": 29.7,
   "days_week_stress": 10,
-  "temperature_stress": 50.2,
-  "last_update": "12:06:47"
+  "temperature_stress": 0.0,
+  "last_update": "20:46:25",
+  "metro_lines": [
+    {
+      "nome": "Linha 7-Rubi",
+      "codigo": "7",
+      "empresa": "TIC Trens",
+      "situacao": "Operação Normal",
+      "operacao_normal": true,
+      "classificacao": "operacional",
+      "descricao": ""
+    },
+    {
+      "nome": "Linha 5-Lilás",
+      "codigo": "5",
+      "empresa": "ViaMobilidade 5",
+      "situacao": "Operação Normal",
+      "operacao_normal": true,
+      "classificacao": "operacional",
+      "descricao": ""
+    },
+    {
+      "nome": "Linha 8-Diamante",
+      "codigo": "8",
+      "empresa": "ViaMobilidade 8 e 9",
+      "situacao": "Atividade Programada",
+      "operacao_normal": true,
+      "classificacao": "operacional",
+      "descricao": "Devido à manutenção programada, os trens da Linha 8-Diamante circulam com maiores intervalos entre as estações Júlio Prestes e Itapevi."
+    },
+    {
+      "nome": "Linha 9-Esmeralda",
+      "codigo": "9",
+      "empresa": "ViaMobilidade 8 e 9",
+      "situacao": "Atividade Programada",
+      "operacao_normal": true,
+      "classificacao": "operacional",
+      "descricao": "Devido à manutenção programada, os trens da Linha 9-Esmeralda circulam com maiores intervalos entre as estações Varginha e Osasco."
+    },
+    {
+      "nome": "Linha 4-Amarela",
+      "codigo": "4",
+      "empresa": "ViaQuatro",
+      "situacao": "Operação Normal",
+      "operacao_normal": true,
+      "classificacao": "operacional",
+      "descricao": ""
+    },
+    {
+      "nome": "Linha 10-Turquesa",
+      "codigo": "10",
+      "empresa": "CPTM - Companhia Paulista de Trens Metropolitanos",
+      "situacao": "Operação Normal",
+      "operacao_normal": true,
+      "classificacao": "operacional",
+      "descricao": ""
+    },
+    {
+      "nome": "Linha 11-Coral",
+      "codigo": "11",
+      "empresa": "CPTM - Companhia Paulista de Trens Metropolitanos",
+      "situacao": "Operação Normal",
+      "operacao_normal": true,
+      "classificacao": "operacional",
+      "descricao": ""
+    },
+    {
+      "nome": "Linha 12-Safira",
+      "codigo": "12",
+      "empresa": "CPTM - Companhia Paulista de Trens Metropolitanos",
+      "situacao": "Operação Normal",
+      "operacao_normal": true,
+      "classificacao": "operacional",
+      "descricao": ""
+    },
+    {
+      "nome": "Linha 13-Jade",
+      "codigo": "13",
+      "empresa": "CPTM - Companhia Paulista de Trens Metropolitanos",
+      "situacao": "Operação Normal",
+      "operacao_normal": true,
+      "classificacao": "operacional",
+      "descricao": ""
+    },
+    {
+      "nome": "Linha 15-Prata",
+      "codigo": "15",
+      "empresa": "Metrô de São Paulo",
+      "situacao": "Operação Normal",
+      "operacao_normal": true,
+      "classificacao": "operacional",
+      "descricao": "Operação Normal"
+    },
+    {
+      "nome": "Linha 1-Azul",
+      "codigo": "1",
+      "empresa": "Metrô de São Paulo",
+      "situacao": "Operação Normal",
+      "operacao_normal": true,
+      "classificacao": "operacional",
+      "descricao": "Operação Normal"
+    },
+    {
+      "nome": "Linha 2-Verde",
+      "codigo": "2",
+      "empresa": "Metrô de São Paulo",
+      "situacao": "Operação Normal",
+      "operacao_normal": true,
+      "classificacao": "operacional",
+      "descricao": "Operação Normal"
+    },
+    {
+      "nome": "Linha 3-Vermelha",
+      "codigo": "3",
+      "empresa": "Metrô de São Paulo",
+      "situacao": "Operação Normal",
+      "operacao_normal": true,
+      "classificacao": "operacional",
+      "descricao": "Operação Normal"
+    }
+  ]
 }

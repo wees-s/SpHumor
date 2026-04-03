@@ -314,11 +314,56 @@ class StressDashboard {
             peak_hours_stress,
             days_week_stress,
             temperature_stress,
-            last_update: now.toLocaleTimeString('pt-BR')
+            last_update: now.toLocaleTimeString('pt-BR'),
+            metro_lines: []
         };
     }
 
     // ─── UI UPDATES ───────────────────────────────────
+
+    // Cores oficiais por código de linha
+    getLineColor(codigo) {
+        const colors = {
+            '1': '#0055A5', '2': '#007A5E', '3': '#EE3124',
+            '4': '#FFD400', '5': '#9B2990', '7': '#B01A1A',
+            '8': '#97A0A9', '9': '#01A9A4', '10': '#007A5E',
+            '11': '#F15A22', '12': '#0F4C9A', '13': '#00ADEF',
+            '15': '#6E267B',
+        };
+        return colors[codigo] || '#555';
+    }
+
+    getStatusClass(linha) {
+        if (linha.operacao_normal) return 'normal';
+        const sit = (linha.situacao || '').toLowerCase();
+        if (sit.includes('encerr') || sit.includes('interrup') || sit.includes('paralis')) return 'critico';
+        return 'alerta';
+    }
+
+    renderMetroLines(lines) {
+        const grid = document.getElementById('metroGrid');
+        if (!grid) return;
+
+        if (!lines || lines.length === 0) {
+            grid.innerHTML = '<div class="metro-loading">Dados das linhas indisponíveis.</div>';
+            return;
+        }
+
+        grid.innerHTML = lines.map(l => {
+            const color = this.getLineColor(l.codigo);
+            const statusClass = this.getStatusClass(l);
+            const statusText = l.situacao || 'Sem informação';
+            return `
+            <div class="metro-card">
+                <div class="metro-badge" style="background:${color}">${l.codigo}</div>
+                <div class="metro-info">
+                    <div class="metro-name">${l.nome}</div>
+                    <div class="metro-status ${statusClass}">${statusText}</div>
+                </div>
+                <div class="metro-status-dot ${statusClass}"></div>
+            </div>`;
+        }).join('');
+    }
 
     updateUI() {
         this.updateStressMeter(this.currentData.stress);
@@ -329,6 +374,7 @@ class StressDashboard {
 
         this.updateTransitDescription(this.currentData.transit);
         this.updateTemperatureDescription(this.currentData.temperature);
+        this.renderMetroLines(this.currentData.metro_lines || []);
 
         if (this.currentData.last_update) {
             document.getElementById('lastUpdate').textContent = `Última atualização: ${this.currentData.last_update}`;
