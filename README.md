@@ -316,7 +316,7 @@ Desenvolvido para fins educacionais. Uso permitido para aprendizado e desenvolvi
 Contribuições são bem-vindas! Por favor:
 1. Fork o repositório
 2. Crie uma branch para sua feature
-3. Abra um Pull Request
+3. Abra um pull request
 
 ## 📞 Suporte
 
